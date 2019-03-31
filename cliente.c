@@ -1,3 +1,5 @@
+/***********Processo "cliente" da memória compartilhada
+*****Autor: Rubio Torres*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,68 +8,39 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include<math.h>
-int main()
-{
+int main(){
+//Inicializa variaves
 	const char *name = "shared_memory";
 	const int SIZE = pow(1024,3);
-
 	int shm_fd;
 	char *start,*s;
 	char *ptr;
-	int i,cont=0;
+	int i,j,cont=0;
+//Inicializa leitura/escrita da memoria
 	shm_fd = shm_open(name, O_RDWR, 0666);
 	if (shm_fd == -1) {
 		printf("shared memory failed\n");
 		exit(-1);
 	}
-
 	ptr = mmap(0,SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
 	if (ptr == MAP_FAILED) {
 		printf("Map failed\n");
 		exit(-1);
 	}
+//Salva começo da memoria
     start=ptr;
-	int j=1;
-	s=(char*)ptr;
-    *s++;
-	for(j=1;s[j]!='\0';j++){
-        while(s[j]==-1){
+    ptr++;
+//Lê a memoria e faz a comparação
+	for(j=1;ptr[j]!='\0';j++){
+        while(ptr[j]==-1){
             j++;
         }
-		printf("%d: %c\n",j,s[j]);
-		if(s[j]==*start){			
+		if(ptr[j]==*start){			
 			cont++;
 		}	
 	}
-	putchar('\n');
-    if (shm_unlink(name) == -1) {
-		printf("Error removing %s\n",name);
-		exit(-1);
-	} 
-	shm_fd = shm_open(name, O_RDWR, 0666);
-	ptr = mmap(0,SIZE, PROT_WRITE, MAP_SHARED, shm_fd, 0);
-    *ptr=cont;
-    printf("LD: %d",cont);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//	sleep(60);
-	/* remove the shared memory segment */
-	/* if (shm_unlink(name) == -1) {
-		printf("Error removing %s\n",name);
-		exit(-1);
-	} */
-
+// Escreve resultado na memoria
+	start[1]=cont;
+    printf("Nesse processo foi lido %d termos '%c'\n",cont,*start);
 	return 0;
 }
